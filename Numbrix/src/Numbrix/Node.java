@@ -1,10 +1,13 @@
 package Numbrix;
 
-import java.util.ArrayList;
 
-public class Node {
+
+public class Node{
 	private int x, y, t;
-	private ArrayList<Integer> p = new ArrayList<Integer>();
+	private Node north;
+	private Node east;
+	private Node south;
+	private Node west;
 
 	public int getT() {
 		return t;
@@ -21,9 +24,7 @@ public class Node {
 		this.t = t;
 	}
 	
-	public boolean pFull(){
-		return (p.size() >= 20);
-	}
+	
 	public int getX() {
 		return x;
 	}
@@ -36,12 +37,39 @@ public class Node {
 	public void setY(int y) {
 		this.y = y;
 	}
-	public ArrayList<Integer> getP() {
-		return p;
+
+	public Node getNorth() {
+		return north;
 	}
-	public void setP(ArrayList<Integer> p) {
-		this.p = p;
+
+	public void setNorth(Node north) {
+		this.north = north;
 	}
+
+	public Node getEast() {
+		return east;
+	}
+
+	public void setEast(Node east) {
+		this.east = east;
+	}
+
+	public Node getSouth() {
+		return south;
+	}
+
+	public void setSouth(Node south) {
+		this.south = south;
+	}
+
+	public Node getWest() {
+		return west;
+	}
+
+	public void setWest(Node west) {
+		this.west = west;
+	}
+	
 
 	
 	
