@@ -1,5 +1,7 @@
 package Numbrix;
 
+import java.util.ArrayList;
+
 
 
 public class Node{
@@ -8,19 +10,30 @@ public class Node{
 	private Node east;
 	private Node south;
 	private Node west;
+	public ArrayList<Integer> possible;
 
-	public int getT() {
-		return t;
-	}
-
-	public void setT(int t) {
-		this.t = t;
-	}
 
 	public Node(int x, int y, int t) {
 		super();
 		this.x = x;
 		this.y = y;
+		this.t = t;
+	}
+	
+	/*
+	public ArrayList getPossible() {
+		return possible;
+	}
+
+	public void setPossible(ArrayList possible) {
+		this.possible = possible;
+	}
+*/
+	public int getT() {
+		return t;
+	}
+
+	public void setT(int t) {
 		this.t = t;
 	}
 	

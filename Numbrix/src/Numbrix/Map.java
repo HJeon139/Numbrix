@@ -1,5 +1,7 @@
 package Numbrix;
 
+import java.util.ArrayList;
+
 //import java.util.Arrays;
 
 public class Map {
@@ -213,31 +215,34 @@ public class Map {
 		return ((x>=0)&&(x<map.length)&&(y>=0)&&(y<map.length));
 	}
 	public boolean echoTap(Node peta, int depth, int inc){
-		boolean retval = false;
+		boolean retval = false/*, prune = true*/;
 		int x = peta.getX();
 		int y = peta.getY();
-			if(this.checkGame() || depth <0){
+		int t = peta.getT();
+			if(this.checkGame() || depth <0 ||(map[x][y].getT()!=t && map[x][y].getT()!=0)){//game solved or depth end or value does not match, prune
 				retval = true;
 			}
-			
+			else{//set the possible values into the possible arraylist of that node.
+				map[x][y].possible.add(t);
+			}
 			if(checkBounds(x,y-1) && !retval){
 				//north
-				peta.setNorth(new Node(x, y-1, peta.getT()+inc));
+				peta.setNorth(new Node(x, y-1, t+inc));
 				retval = this.echoTap(peta.getNorth(), depth-1, inc);
 			}
 			if(checkBounds(x+1,y) && !retval){
 				//east
-				peta.setEast(new Node(x+1, y, peta.getT()+inc));
+				peta.setEast(new Node(x+1, y, t+inc));
 				retval = this.echoTap(peta.getEast(), depth-1, inc);
 			}
 			if(checkBounds(x,y+1) && !retval){
 				//south
-				peta.setSouth(new Node(x, y+1, peta.getT()+inc));
+				peta.setSouth(new Node(x, y+1, t+inc));
 				retval = this.echoTap(peta.getSouth(), depth-1, inc);
 			}
 			if(checkBounds(x-1,y) && !retval){
 				//west
-				peta.setWest(new Node(x-1, y, peta.getT()+inc));
+				peta.setWest(new Node(x-1, y, t+inc));
 				retval = this.echoTap(peta.getWest(), depth-1, inc);
 			}
 		return retval;
@@ -262,8 +267,96 @@ public class Map {
 			return this.echoTap(peta, depth, inc);
 	}
 	
-	public Node higestProb(){
-		return null;
+	public idPair[] highestPset(int x, int y){
+		idPair[] retval = new idPair[1];
+		ArrayList<Integer> pval = map[x][y].possible;
+		
+		if(!pval.isEmpty()){
+			//int length = pval.size();
+			Integer[] count = new Integer[pval.size()];
+			Integer[] value = new Integer[pval.size()];
+			retval = new idPair[pval.size()];
+			
+			for(int i=0; i<pval.size();i++ ){
+				if(i==0){//first case
+					value[i]=pval.get(i);
+					count[i]=1;
+					
+				}else{
+					for(int j=0; j<value.length; j++){
+						//look until match or null
+						if(pval.get(i)==value[j] && value[j]!=null){
+							count[j]++;
+							break;
+						}else if(value[j+1] == null){
+							value[j+1]=pval.get(i);
+							count[j+1]=1;
+							break;
+						}
+					}
+				}
+			}
+			for(int i=0; i<count.length; i++){
+				retval[i]= new idPair(value[i], ((double)count[i])/((double)pval.size()));
+			}
+		}
+		return retval;
+	}
+	
+	public int highestPval(int x, int y){
+		int retval = 0;
+		ArrayList<Integer> pval = map[x][y].possible;
+		
+		if(!pval.isEmpty()){
+			//int length = pval.size();
+			Integer[] count = new Integer[pval.size()];
+			Integer[] value = new Integer[pval.size()];
+			//retval = new idPair[pval.size()];
+			
+			for(int i=0; i<pval.size();i++ ){
+				if(i==0){//first case
+					value[i]=pval.get(i);
+					count[i]=1;
+					
+				}else{
+					for(int j=0; j<value.length; j++){
+						//look until match or null
+						if(pval.get(i)==value[j] && value[j]!=null){
+							count[j]++;
+							break;
+						}else if(value[j+1] == null){
+							value[j+1]=pval.get(i);
+							count[j+1]=1;
+							break;
+						}
+					}
+				}
+			}
+			
+			int loc=-1,max=-1;
+			for(int i =0; i<count.length;i++){
+				if(i==0){
+					max=count[i];
+					loc=i;
+				}else if(count[i]>max){
+					max=count[i];
+					loc=i;
+				}
+				
+				if(count[i+1]==null){
+					break;
+				}
+			}
+			retval=value[loc];
+		}
+		return retval;
+	}
+		
+	public Node highestProb(){
+		Node retval =null;
+		
+		
+		return retval;
 	}
 	
 	
