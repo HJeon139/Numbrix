@@ -18,14 +18,15 @@ public static void main(String[] args) throws IOException{
 	System.out.println("\n\nWelcome to the Numbrix Program!\nThis program will allow you edit numbrix puzzles.\nPlease choose from the following options by typing in the corresponding number:");
 	System.out.println("Rules of Game:\n1)only one of each number goes into the table\n2)numbers are adjacent to its increment\n3)puzzle is complete when all the numbers are in the table.");
 	System.out.println(">1 open Numbrix from a .txt file");
-	System.out.println(">2 create an empty Numbrix puzzle");
-	System.out.println(">3 exit");
+	System.out.println(">2 Solve Numbrix from a .txt file");
+	System.out.println(">3 create an empty Numbrix puzzle");
+	System.out.println(">4 exit");
 	step1 = scanner.nextInt();
-	if(!((step1 > 0)&&(step1<4)))
+	if(!((step1 > 0)&&(step1<=4)))
 		System.out.println("Error: input was not 1, 2, or 3.");
-	}while(!((step1 > 0)&&(step1<4)));
+	}while(!((step1 > 0)&&(step1<=4)));
 	if(step1 == 1){
-		//done System.out.println("TODO");
+		
 		history = history+"client> imported puzzle from .txt file\n";
 		//import table size
 		//the .txt files are formatted like so
@@ -72,7 +73,7 @@ public static void main(String[] args) throws IOException{
 			for (int j=0; j<size; j++){
 				
 				if(taurs[j]>0 && taurs[j]<=size*size){
-					small.addForce(j, i, taurs[j]);
+					small.addForce(i, j, taurs[j]);
 				}
 				else if (taurs[j]!=0)
 					System.out.println("Error: While loading file, values are out of bounds. " + taurs[j]);
@@ -124,7 +125,78 @@ public static void main(String[] args) throws IOException{
 		System.out.println("Returning to Main Menu...");
 		in.close();
 	}
-	else if (step1 == 2){
+	else if(step1==2){
+		history = history+"client> imported puzzle from .txt file\n";
+		//import table size
+		//the .txt files are formatted like so
+		//Empty slots are annotated with a 0
+		/*line	text
+		 *	1| <size>
+		 * 	2|	# # #
+		 * 	3|  # # #
+		 *  4|  # # #
+		 *  
+		 * Example:
+		 * 1| 3
+		 * 2| 1 0 0
+		 * 3| 0 9 6
+		 * 4| 0 0 0
+		 */
+		//only one puzzle is allowed per txt file.
+		
+		System.out.println("The puzzle file must be in the following format:\n#\n# # #\n# # #\n# # #\nPlease type in the file location including the text file:");
+		//String fileloc = System.getProperty("user.dir")+"\\"+scanner.next();
+		String fileloc = scanner.next();
+		System.out.println("Reading puzzle from location: "+fileloc);
+		while(!(fileloc.substring(fileloc.length()-4, fileloc.length())).equals(".txt")){
+			System.out.println("Input is not a text file. ");//+fileloc.substring(fileloc.length()-4, fileloc.length()));
+			System.out.println("Please type in the file location including the text file:");
+			fileloc = scanner.next();
+		}
+		BufferedReader in = new BufferedReader(new FileReader(fileloc));
+		//System.out.println(in.readLine());
+		String tampa= in.readLine();
+		int size = Integer.parseInt(tampa);
+		Map small = new Map(size);
+		//import init parts
+		//int temp;
+		//System.out.println(size+"\ncontinue?\n");
+		//String blah = scanner.next();
+		for (int i=0; i<size; i++){
+			tampa = in.readLine();
+			
+			String loco[] = tampa.split("\\s+");
+			int taurs[] = new int[size];
+			for (int p=0; p<loco.length;p++){
+				
+				taurs[p] =  Integer.parseInt(loco[p]);
+				//System.out.println(taurs[p]);
+			}
+			
+			for (int j=0; j<size; j++){
+				
+				if(taurs[j]>0 && taurs[j]<=size*size){
+					//System.out.println(taurs[j]);
+					small.addForce(i, j, taurs[j]);
+				}
+				else if (taurs[j]!=0)
+					System.out.println("Error: While loading file, values are out of bounds. " + taurs[j]);
+				
+			}
+		}
+		System.out.println("Puzzle of size: "+ size+ " successfully loaded...");
+		System.out.print(small);
+		//boolean getout = true;
+		//int x, y, t;
+		if(small.AISolve())
+			System.out.print("\nPuzzle solved:\n"+small);
+		else
+			System.out.print("\nError: Puzzle could not be solved:\n"+small);
+		small.probString();
+		System.out.println("Returning to Main Menu...");
+		in.close();
+	}
+	else if (step1 == 3){
 		int n = 1;
 		boolean build = true;
 		while (build){

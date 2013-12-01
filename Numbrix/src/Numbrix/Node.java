@@ -18,6 +18,7 @@ public class Node{
 		this.x = x;
 		this.y = y;
 		this.t = t;
+		possible = new ArrayList<Integer>();
 	}
 	
 	/*
@@ -29,8 +30,14 @@ public class Node{
 		this.possible = possible;
 	}
 */
+	
 	public int getT() {
 		return t;
+	}
+
+	@Override
+	public String toString() {
+		return "Node [x=" + y + ", y=" + x + ", t=" + t + "]";
 	}
 
 	public void setT(int t) {

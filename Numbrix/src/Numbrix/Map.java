@@ -1,19 +1,24 @@
 package Numbrix;
 
 import java.util.ArrayList;
-
-//import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class Map {
 	private Node[][] map;
-	private int[] assigned, remaining;
+	private Integer[] assigned;
+	private int[] remaining, mapx, mapy;
+	private ArrayList<SegPair> codex = new ArrayList<SegPair>();
 
 	public Map(Node[][] map) {
 		super();
 		this.map = map;
 		int d = map.length;
-		 assigned = new int[d*d];
+		 assigned = new Integer[d*d];
 		 remaining = new int[d*d];
+		 mapx = new int[d*d];
+		 mapy = new int[d*d];
 		 for(int i=0; i<d*d; i++){
 			 remaining[i] = i+1;
 		 }
@@ -70,8 +75,10 @@ public class Map {
 
 	public void build_nest(int d){
 		 map = new Node[d][d];
-		 assigned = new int[d*d];
+		 assigned = new Integer[d*d];
 		 remaining = new int[d*d];
+		 mapx = new int[d*d];
+		 mapy = new int[d*d];
 		 for (int i=0; i<d; i++){
 			 for (int j=0; j<d; j++){
 				 map[i][j]= new Node(i, j, 0);
@@ -163,7 +170,8 @@ public class Map {
 			map[x][y].setT(t);
 			assigned[t-1]=t;
 			remaining[t-1]=-1;
-			
+			mapx[t-1] = x;
+			mapy[t-1] = y;
 		}
 		
 		if(this.checkGame())
@@ -178,24 +186,25 @@ public class Map {
 		}
 		return k;
 	}
-	public void addForce(int x, int y, int t){
+	public void addForce(int x, int y, Integer t){
 		boolean a=true;
-		for (int i=0; i<assigned.length; i++){
-			if(assigned[i] == t){
+		//for (int i=0; i<assigned.length; i++){
+			if(assigned[t-1] == t){
 				a = false;
 				System.out.println("...eligible exist fail...");
-				break;
 			}
 			else{
 				//System.out.println("...eligible exist pass...");
 				a=true;
 			}
 				
-		}
+		//}
 		if(a){
 			map[x][y].setT(t);
 			assigned[t-1]=t;
 			remaining[t-1]=-1;
+			mapx[t-1] = x;
+			mapy[t-1] = y;
 		}
 		else
 			System.out.println("Error: While loading file, inital puzzle repeats number");
@@ -208,74 +217,254 @@ public class Map {
 		return this.addValue(x, y, t);
 	}
 	
-	public boolean solveMe(){
-		return false;
+	public boolean AISolve(){
+		//check each adjoining pairs in assigned if it is not continuous then
+		//e.g. is assigned[1] = assigned[0]+1
+		//assigned is designed so that each number is at it's n-1 slot
+		//e.g. [1 2 3 n n n 7 n 9]
+		//so pairs to check in this example are (3,7) and (7,9)
+		//also determines special cases (n,#) and (#,n)
+		//This method assumes that at least one assigned exists.
+		boolean state = true;
+		Integer top = null, bottom = null;
+		for(int i=0; i<assigned.length; i++){
+			//set top and bottom
+			if(state){
+				bottom = assigned[i];
+				state = false;
+			}
+			if(i+1<assigned.length){
+				top = assigned[i+1];
+			}else
+				break;
+			
+			//iteration process
+			if(bottom == null && top != null){
+				state = true; 
+				//this.connect(top, -1);
+				codex.add(new SegPair(top, -1));
+			}
+			if(bottom != null && top == null && i+1 ==assigned.length-1){
+				codex.add(new SegPair(-1, bottom));
+			}
+			
+			if(bottom != null && top != null && top > bottom){
+				state = true;
+				//this.connect(top, bottom);
+				if(top!=bottom+1)
+					codex.add(new SegPair(top, bottom));
+			}
+			if(bottom != null && top != null && top<=bottom){//fail catcher
+				System.out.println("Error: Pair search failed");
+				break;
+			}
+		}
+		
+		Collections.sort(codex, new Comparator<SegPair>() {
+		    public int compare(SegPair a, SegPair b) {
+		        return a.getDif(map.length*map.length)-b.getDif(map.length*map.length);
+		    }
+		});
+		int s = codex.size();
+		for(int i=0; i<s;i++){
+			System.out.println("Connecting: "+codex.get(i));
+			if(this.connect(i)){
+				System.out.println("Connected: "+codex.get(i));
+				//System.out.print(this);
+				
+				//codex.remove(i);
+				//i--;
+				//s--;
+			}
+			else
+				System.out.println("Failed to Connect: "+codex.get(i));
+			this.probString();
+			
+		}
+		while(!this.checkGame()){
+		Node rome = this.highestProb();
+		System.out.println("Most Probable: "+rome);
+		this.addValue(rome.getX(), rome.getY(), rome.getT());
+		ArrayList<Integer> remus = new ArrayList<Integer>();
+		remus.add(rome.getT());
+		for(int i=0; i<map.length;i++){
+			for(int j=0; j<map.length;j++){
+				map[i][j].possible.removeAll(remus);
+			}
+		}
+		}
+		return this.checkGame();
 	}
+	
+	public boolean connect(int i){
+		boolean retval = false;
+		int top = codex.get(i).getTop();
+		int bottom = codex.get(i).getBottom();
+		int dif = codex.get(i).getDif(map.length*map.length);
+		if(top==-1 && bottom >0){
+//			if(dif>2)
+//				retval = this.echoTap(bottom, (int)(Math.ceil((double)dif)/2.0), 1);
+//			else
+				retval = this.echoTap(bottom, dif, 1, -1);
+		}
+		else if(top>0 && bottom ==-1){
+//			if(dif>2)
+//				retval = this.echoTap(top, (int)(Math.ceil((double)dif)/2.0), -1);
+//			else
+				retval = this.echoTap(top, dif, -1, -1);
+		}
+		else if(top>0 && bottom>0){
+			System.out.println("Phase1: bottom to top");
+			boolean b = this.echoTap(bottom, (int)(Math.ceil((double)dif)/1.5), 1, top);
+			System.out.println("Phase2: top to bottom");
+			boolean a = this.echoTap(top, (int)(Math.ceil((double)dif)/1.5), -1, bottom);
+			retval = a&&b;
+		
+		}
+		
+		
+		return retval;
+	}
+	
 	public boolean checkBounds(int x, int y){
 		return ((x>=0)&&(x<map.length)&&(y>=0)&&(y<map.length));
 	}
-	public boolean echoTap(Node peta, int depth, int inc){
+	public boolean echoTap(Node peta, int depth, int inc, boolean first, Node dest){
 		boolean retval = false/*, prune = true*/;
 		int x = peta.getX();
 		int y = peta.getY();
 		int t = peta.getT();
-			if(this.checkGame() || depth <0 ||(map[x][y].getT()!=t && map[x][y].getT()!=0)){//game solved or depth end or value does not match, prune
-				retval = true;
-			}
-			else{//set the possible values into the possible arraylist of that node.
-				map[x][y].possible.add(t);
-			}
-			if(checkBounds(x,y-1) && !retval){
-				//north
+		int dx=0, dy=0/*, dt=0*/;
+		if(dest != null){
+			dx = dest.getX();
+			dy = dest.getY();
+			//dt = dest.getT();
+		}
+		System.out.println(peta);
+		if((!first&&!this.hasRemaining(t))||this.checkGame() || depth <0 ||(!first && map[x][y].getT()==t && map[x][y].getT()!=0)|| t<1 || t>map.length*map.length){//game solved or depth end or value does not match, prune
+			retval = true;
+			System.out.println("EchoTap("+x+", "+y+"): depth="+depth+", recursion stop: t="+t+" mapT="+map[x][y].getT());
+		}
+		else{ 
+			if(map[x][y].getT() == 0 && this.hasRemaining(t)&&!first){
+			//set the possible values into the possible arraylist of that node.
+			map[x][y].possible.add(t);
+			System.out.println("EchoTap("+x+", "+y+"): depth="+depth+", possible add: t="+t);
+			}	
+			if(dest == null && checkBounds(x,y-1) && depth>0&& map[x][y-1].getT() == 0 &&t>0 && t<(map.length*map.length+1)){
+				System.out.print("west: ");
 				peta.setNorth(new Node(x, y-1, t+inc));
-				retval = this.echoTap(peta.getNorth(), depth-1, inc);
+				retval = this.echoTap(peta.getNorth(), depth-1, inc, false, dest);
+				
 			}
-			if(checkBounds(x+1,y) && !retval){
-				//east
+			else if((Math.abs(dy-(y-1))<=y)&&checkBounds(x,y-1) && depth>0&& map[x][y-1].getT() == 0&&t>0 && t<(map.length*map.length+1)){
+				peta.setNorth(new Node(x, y-1, t+inc));
+				if(map[x][y-1].possible.contains(t+inc)){
+					map[x][y-1].possible.add(t+inc);
+				}else if(map[x][y-1].possible.contains(t-inc)){
+					map[x][y-1].possible.add(t-inc);
+				}
+				System.out.print("west2: ");
+				retval = this.echoTap(peta.getNorth(), depth-1, inc, false, dest);
+				
+			}
+			if(dest == null && checkBounds(x+1,y) && depth>0 && map[x+1][y].getT() == 0 &&t>0 && t<(map.length*map.length+1)){
 				peta.setEast(new Node(x+1, y, t+inc));
-				retval = this.echoTap(peta.getEast(), depth-1, inc);
+				System.out.print("south: ");
+				retval = this.echoTap(peta.getEast(), depth-1, inc, false, dest);
+				
+			}else if((Math.abs(dx-(x+1))<=x)&& checkBounds(x+1,y) && depth>0 && map[x+1][y].getT() == 0 &&t>0 && t<(map.length*map.length+1)){
+				peta.setEast(new Node(x+1, y, t+inc));
+				if(map[x+1][y].possible.contains(t+inc)){
+					map[x+1][y].possible.add(t+inc);
+				}else if(map[x+1][y].possible.contains(t-inc)){
+					map[x+1][y].possible.add(t-inc);
+				}
+				System.out.print("south2: ");
+				retval = this.echoTap(peta.getEast(), depth-1, inc, false, dest);
+				
 			}
-			if(checkBounds(x,y+1) && !retval){
+			if(dest == null && checkBounds(x,y+1) && depth>0 && map[x][y+1].getT() == 0 &&t>0 && t<(map.length*map.length+1)){
+				peta.setSouth(new Node(x, y+1, t+inc));
+				System.out.print("east: ");
+				retval = this.echoTap(peta.getSouth(), depth-1, inc, false, dest);
+				
+			}else if((Math.abs(dy-(y+1))<=y) && checkBounds(x,y+1) && depth>0 && map[x][y+1].getT() == 0 &&t>0 && t<(map.length*map.length+1)){
 				//south
 				peta.setSouth(new Node(x, y+1, t+inc));
-				retval = this.echoTap(peta.getSouth(), depth-1, inc);
+				if(map[x][y+1].possible.contains(t+inc)){
+					map[x][y+1].possible.add(t+inc);
+				}else if(map[x][y+1].possible.contains(t-inc)){
+					map[x][y+1].possible.add(t-inc);
+				}
+				System.out.print("east2: ");
+				retval = this.echoTap(peta.getSouth(), depth-1, inc, false, dest);
+				
 			}
-			if(checkBounds(x-1,y) && !retval){
+			if(dest == null && checkBounds(x-1,y) && depth>0&& map[x-1][y].getT() == 0 &&t>0 && t<(map.length*map.length+1)){
 				//west
 				peta.setWest(new Node(x-1, y, t+inc));
-				retval = this.echoTap(peta.getWest(), depth-1, inc);
+				System.out.print("north: ");
+				retval = this.echoTap(peta.getWest(), depth-1, inc, false, dest);
+				
+			}else if((Math.abs(dx-(x-1))<=x) && checkBounds(x-1,y) && depth>0&& map[x-1][y].getT() == 0 &&t>0 && t<(map.length*map.length+1)){
+				//west
+				peta.setWest(new Node(x-1, y, t+inc));
+				if(map[x-1][y].possible.contains(t+inc)){
+					map[x-1][y].possible.add(t+inc);
+				}else if(map[x-1][y].possible.contains(t-inc)){
+					map[x-1][y].possible.add(t-inc);
+				}
+				System.out.print("north2: ");
+				retval = this.echoTap(peta.getWest(), depth-1, inc, false, dest);
+				
 			}
+		}
 		return retval;
 	}
 	
-	public boolean echoTap(int val, int depth, int inc){
-		boolean retval = false;
-		Node peta = null;
-		int x=-1, y=-1;
-		for(int i = 0; i<map.length; i++){
-			for(int j=0; j<map.length; j++){
-				if(map[i][j].getT()==val && map[i][j].getT()!=0){
-					peta=map[i][j];
-					retval=true;
-					break;
-				}
+	public boolean hasRemaining(int v){
+		boolean r = false;
+		for(int i=0; i<remaining.length; i++){
+			if(v==remaining[i]){
+				r = true;
+				break;
 			}
 		}
-		if(x<0 || y<0 || !retval || peta==null)
-			return false;
-		else
-			return this.echoTap(peta, depth, inc);
+		return r;
 	}
 	
-	public idPair[] highestPset(int x, int y){
-		idPair[] retval = new idPair[1];
-		ArrayList<Integer> pval = map[x][y].possible;
+	public boolean echoTap(int val, int depth, int inc, int dval){
+		//boolean retval = false;
 		
-		if(!pval.isEmpty()){
+		int x=this.mapx[val-1], y=this.mapy[val-1];
+		Node peta = new Node(x, y, val);
+		Node dest = null;
+		if(dval>0 &&dval<map.length*map.length){
+			x=this.mapx[dval-1];
+			y=this.mapy[dval-1];
+			dest = new Node(x, y, dval);
+		}
+//		if(map[x][y].getT()==val && map[x][y].getT()!=0){
+//			peta=map[x][y];
+//			retval=true;
+//		}
+		
+		if(x<0 || y<0 || peta==null)
+			return false;
+		else
+			return this.echoTap(peta, depth, inc, true, dest);
+	}
+	
+	public ArrayList<idPair> highestPset(int x, int y){
+		ArrayList<idPair> retval = new ArrayList<idPair>();
+		ArrayList<Integer> pval = map[x][y].possible;
+		//System.out.println(pval);
+		if(pval!=null){
 			//int length = pval.size();
 			Integer[] count = new Integer[pval.size()];
 			Integer[] value = new Integer[pval.size()];
-			retval = new idPair[pval.size()];
+			//retval = new idPair[pval.size()];
 			
 			for(int i=0; i<pval.size();i++ ){
 				if(i==0){//first case
@@ -297,9 +486,16 @@ public class Map {
 				}
 			}
 			for(int i=0; i<count.length; i++){
-				retval[i]= new idPair(value[i], ((double)count[i])/((double)pval.size()));
+				//System.out.println("value: "+value[i]);
+				if(value[i]!=null)
+					retval.add(new idPair(value[i], ((double)count[i])/((double)pval.size())));
 			}
 		}
+		Collections.sort(retval, new Comparator<idPair>() {
+		    public int compare(idPair a, idPair b) {
+		        return (int)(100*a.getPercent() - 100*b.getPercent())*-1;
+		    }
+		});
 		return retval;
 	}
 	
@@ -352,12 +548,83 @@ public class Map {
 		return retval;
 	}
 		
-	public Node highestProb(){
-		Node retval =null;
+	public Node highestProb(int x, int y){
+		Node retval = null;
+		idPair probRef = null;
+		if(!this.highestPset(x,y).isEmpty()){
+			probRef = this.highestPset(x,y).get(0);
+			retval = new Node(x, y, probRef.getValue());
+		}else
+			retval = new Node(x, y, 0);
 		
+		//System.out.println(probRef);
 		
 		return retval;
 	}
+	public Node highestProb(){
+		ArrayList<idPair> probRef = new ArrayList<idPair>();
+		
+		for(int i = 0; i<this.map.length; i++){
+			for(int j=0; j<this.map.length; j++){
+				if(!this.highestPset(i,j).isEmpty()){
+				idPair temp = this.highestPset(i,j).get(0);
+				temp.setx(i);
+				temp.setY(j);
+				probRef.add(temp);
+				}
+				//System.out.println(probRef);
+			}
+		}
+		
+		//prob print
+		Collections.sort(probRef, new Comparator<idPair>() {
+		    public int compare(idPair a, idPair b) {
+		        return (int)(100*a.getPercent() - 100*b.getPercent())*-1;
+		    }
+		});
+		System.out.println(probRef.get(0));
+		return new Node(probRef.get(0).getX(), probRef.get(0).getY(), probRef.get(0).getValue());
+	}
 	
+	public void probString(){
+		String retString = "   +";
+		for (int i=0; i<map.length*3; i++){
+			retString = retString + "-";
+		}
+		retString = retString + "+\n    ";
+		for (int i=0; i<map.length; i++){
+			retString = retString + String.format("%2d ", i);
+		}
+		retString = retString + "\n   +";
+		for (int i=0; i<map.length*3; i++){
+			retString = retString + "-";
+		}
+		retString = retString + "+\n";
+		for (int i=0; i<map.length; i++){
+			 retString = retString + String.format("%2d |", i);
+			 for (int j=0; j<map.length; j++){
+				 int k=this.highestProb(i, j).getT();
+				 if (k>0){
+					 retString = retString + String.format("%2d ", k);
+				 }
+				 else{
+					 if(map[i][j].getT()>0)
+						 retString = retString + String.format("%2d ", map[i][j].getT());
+					 else
+						 retString = retString + " ? ";
+				 }
+			 }
+			 retString = retString + "|\n";
+		 }
+		retString = retString + "   +";
+		for (int i=0; i<map.length*3; i++){
+			retString = retString + "-";
+		}
+		retString = retString + "+\n\n";
+		//display # remaining
+		retString = retString + "Most Probable Map";
+		retString = retString + "\n";
+		System.out.println(retString);
+	}
 	
 }
