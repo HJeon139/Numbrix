@@ -48,6 +48,7 @@ public static void main(String[] args) throws IOException{
 		System.out.println("The puzzle file must be in the following format:\n#\n# # #\n# # #\n# # #\nPlease type in the file location including the text file:");
 		//String fileloc = System.getProperty("user.dir")+"\\"+scanner.next();
 		String fileloc = scanner.next();
+		fileloc = fileloc+scanner.nextLine();
 		System.out.println("Reading puzzle from location: "+fileloc);
 		while(!(fileloc.substring(fileloc.length()-4, fileloc.length())).equals(".txt")){
 			System.out.println("Input is not a text file. ");//+fileloc.substring(fileloc.length()-4, fileloc.length()));
@@ -64,16 +65,19 @@ public static void main(String[] args) throws IOException{
 		//String blah = scanner.next();
 		for (int i=0; i<size; i++){
 			tampa = in.readLine();
+			
+			String loco[] = tampa.split("\\s+");
 			int taurs[] = new int[size];
-			for (int j=0, p=0; j<size*2; j+=2,p++){
-				taurs[p] =  Integer.parseInt(tampa.substring(j, j+1));
+			for (int p=0; p<loco.length;p++){
 				
+				taurs[p] =  Integer.parseInt(loco[p]);
+				//System.out.println(taurs[p]);
 			}
 			
 			for (int j=0; j<size; j++){
 				
 				if(taurs[j]>0 && taurs[j]<=size*size){
-					small.addForce(i, j, taurs[j]);
+					small.addForce(i, j, taurs[j], false);
 				}
 				else if (taurs[j]!=0)
 					System.out.println("Error: While loading file, values are out of bounds. " + taurs[j]);
@@ -146,7 +150,10 @@ public static void main(String[] args) throws IOException{
 		
 		System.out.println("The puzzle file must be in the following format:\n#\n# # #\n# # #\n# # #\nPlease type in the file location including the text file:");
 		//String fileloc = System.getProperty("user.dir")+"\\"+scanner.next();
+		//System.in.read();
 		String fileloc = scanner.next();
+		fileloc = fileloc+scanner.nextLine();
+		
 		System.out.println("Reading puzzle from location: "+fileloc);
 		while(!(fileloc.substring(fileloc.length()-4, fileloc.length())).equals(".txt")){
 			System.out.println("Input is not a text file. ");//+fileloc.substring(fileloc.length()-4, fileloc.length()));
@@ -177,7 +184,7 @@ public static void main(String[] args) throws IOException{
 				
 				if(taurs[j]>0 && taurs[j]<=size*size){
 					//System.out.println(taurs[j]);
-					small.addForce(i, j, taurs[j]);
+					small.addForce(i, j, taurs[j], false);
 				}
 				else if (taurs[j]!=0)
 					System.out.println("Error: While loading file, values are out of bounds. " + taurs[j]);
@@ -188,12 +195,25 @@ public static void main(String[] args) throws IOException{
 		System.out.print(small);
 		//boolean getout = true;
 		//int x, y, t;
-		if(small.AISolve())
-			System.out.print("\nPuzzle solved:\n"+small);
-		else
-			System.out.print("\nError: Puzzle could not be solved:\n"+small);
+		//Timer time = new Timer(1000, );
+		long startTime = System.nanoTime();
+		long endTime = 0;
+
+		
+		if(small.AISolve()){
+			endTime = System.nanoTime();
+			long duration = endTime - startTime;
+			System.out.print("\nPuzzle solved in "+((double)duration)/1000000000.0+"s :\n"+small);
+		}
+		else{
+			endTime = System.nanoTime();
+			long duration = endTime - startTime;
+			System.out.print("\nError: Puzzle could not be solved but it took "+((double)duration)/1000000000.0+"s for AI to realize it made a serious mistake:\n"+small);
+		}
+		
+		
 		small.probString();
-		System.out.println("Returning to Main Menu...");
+		System.out.println("Returning to Main Menu... Scroll up to see results...");
 		in.close();
 	}
 	else if (step1 == 3){

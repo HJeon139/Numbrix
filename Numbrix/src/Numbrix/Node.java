@@ -31,7 +31,7 @@ public class Node{
 	}
 */
 	
-	public int getT() {
+	public Integer getT() {
 		return t;
 	}
 
