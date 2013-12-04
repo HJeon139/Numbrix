@@ -130,7 +130,7 @@ public class Map {
 
 	public boolean eligible(int x, int y, Integer t){
 		//System.out.println("...eligible check...");
-		boolean a = false, b = false, c=false;
+		boolean a = false, b = false;//, c=false;
 		int n = 0,e = 0,s = 0,w = 0;
 		int tp = t+1, tm = t-1;
 		if(y-1 >=0)
@@ -306,6 +306,10 @@ public class Map {
 			for(int i=0; i<s;i++){
 				//System.out.println("Connecting: "+codex.get(i));
 				/*if(*/this.connect(i);/*){*/
+				//if (codex.get(i).getBottom() ==1){
+					System.out.println("The prob map after "+codex.get(i));
+					this.probString();
+				//}
 				//System.out.println("Connected: "+codex.get(i));
 				//System.out.print(this);
 
@@ -318,8 +322,8 @@ public class Map {
 				//this.probString();
 
 			}
-			this.probString();
-			//System.out.println(map[5][4].possible);
+			//this.probString();
+			System.out.println(map[4][0].possible);
 			
 			boolean ka = false;
 			//int ro=30;
@@ -491,7 +495,7 @@ public class Map {
 					if(or=='e'){
 						if(an=='b'){
 							//System.out.println("adding "+(t+1)+" at [x="+(x+1)+", y="+y+"]");
-							this.addForce(x+1, y, t+1, false);
+							state = this.addForce(x+1, y, t+1, false);
 							ArrayList<Integer> remus = new ArrayList<Integer>();
 							remus.add(t+1);
 							map[x+1][y].possible.clear();
@@ -504,7 +508,7 @@ public class Map {
 						}
 						else if(an=='a'){
 							//System.out.println("adding "+(t-1)+" at [x="+(x+1)+", y="+y+"]");
-							this.addForce(x+1, y, t-1, false);
+							state = this.addForce(x+1, y, t-1, false);
 							ArrayList<Integer> remus = new ArrayList<Integer>();
 							remus.add(t-1);
 							map[x+1][y].possible.clear();
@@ -519,7 +523,7 @@ public class Map {
 					}else if(or=='w'){
 						if(an=='b'){
 							//System.out.println("adding "+(t+1)+" at [x="+(x-1)+", y="+y+"]");
-							this.addForce(x-1, y, t+1, false);
+							state = this.addForce(x-1, y, t+1, false);
 							ArrayList<Integer> remus = new ArrayList<Integer>();
 							remus.add(t+1);
 							map[x-1][y].possible.clear();
@@ -533,7 +537,7 @@ public class Map {
 						}
 						else if(an=='a'){
 							//System.out.println("adding "+(t-1)+" at [x="+(x-1)+", y="+y+"]");
-							this.addForce(x-1, y, t-1, false);
+							state = this.addForce(x-1, y, t-1, false);
 							ArrayList<Integer> remus = new ArrayList<Integer>();
 							remus.add(t-1);
 							map[x-1][y].possible.clear();
@@ -548,7 +552,7 @@ public class Map {
 					}else if(or=='s'){
 						if(an=='b'){
 							//System.out.println("adding "+(t+1)+" at [x="+x+", y="+(y+1)+"]");
-							this.addForce(x, y+1, t+1, false);
+							state = this.addForce(x, y+1, t+1, false);
 							ArrayList<Integer> remus = new ArrayList<Integer>();
 							remus.add(t+1);
 							map[x][y+1].possible.clear();
@@ -562,7 +566,7 @@ public class Map {
 						}
 						else if(an=='a'){
 							//System.out.println("adding "+(t-1)+" at [x="+x+", y="+(y+1)+"]");
-							this.addForce(x, y+1, t-1, false);
+							state = this.addForce(x, y+1, t-1, false);
 							ArrayList<Integer> remus = new ArrayList<Integer>();
 							remus.add(t-1);
 							map[x][y+1].possible.clear();
@@ -578,7 +582,7 @@ public class Map {
 					}else if(or=='n'){
 						if(an=='b'){
 							//System.out.println("adding "+(t+1)+" at [x="+x+", y="+(y-1)+"]");
-							this.addForce(x, y-1, t+1, false);
+							state = this.addForce(x, y-1, t+1, false);
 							ArrayList<Integer> remus = new ArrayList<Integer>();
 							remus.add(t+1);
 							map[x][y-1].possible.clear();
@@ -593,7 +597,7 @@ public class Map {
 
 						else if(an=='a'){
 							//System.out.println("adding "+(t-1)+" at [x="+x+", y="+(y-1)+"]");
-							this.addForce(x, y-1, t-1, false);
+							state = this.addForce(x, y-1, t-1, false);
 							ArrayList<Integer> remus = new ArrayList<Integer>();
 							remus.add(t-1);
 							map[x][y-1].possible.clear();
@@ -609,7 +613,7 @@ public class Map {
 						
 
 					}
-					System.out.println(this);
+					//System.out.println(this);
 					}/*else{
 						state = false;
 					}*/
@@ -702,8 +706,12 @@ public class Map {
 			dx = dest.getX();
 			dy = dest.getY();
 			dt = dest.getT();
-			if(Math.abs(dx-x)+Math.abs(dy-y)<Math.abs(dt-t))
-				dest=null;
+			/*if(Math.abs(dx-x)+Math.abs(dy-y)<Math.abs(dt-t)){
+				dest = null;
+				System.out.print(" depth and dest trucated ");
+				if(depth>1)
+					depth = 1;
+			}*/
 		}
 		if(first){
 			source = new Node(x, y, t);
@@ -716,7 +724,7 @@ public class Map {
 		else{ 
 			if(map[x][y].getT() == 0 && this.hasRemaining(t)&&!first){
 				//set the possible values into the possible arraylist of that node.
-				for(int i=0; i<=(Math.abs(dt-t+depth)/rep); i++)
+				//for(int i=0; i<=(Math.abs(dt-t+depth)/rep); i++)
 				map[x][y].possible.add(t);
 				//System.out.println("EchoTap("+x+", "+y+"): depth="+depth+", possible add: t="+t);
 			}	
@@ -734,11 +742,11 @@ public class Map {
 			}
 			else if((dy<=y)&&checkBounds(x,y-1) && depth>0&& map[x][y-1].getT() == 0&&t>0 && t<(map.length*map.length+1)){
 				peta.setNorth(new Node(x, y-1, t+inc));
-				if(map[x][y-1].possible.contains(t+inc)){
+				/*if(map[x][y-1].possible.contains(t+inc)){
 					map[x][y-1].possible.add(t+inc);
 				}else if(map[x][y-1].possible.contains(t-inc)){
 					map[x][y-1].possible.add(t-inc);
-				}
+				}*/
 				//System.out.print("west2: ");
 				//if(first|| x!=source.getX() || y-1!=source.getY())
 					retval = this.echoTap(peta.getNorth(), depth-1, inc, false, dest, peta, rep);
@@ -757,11 +765,11 @@ public class Map {
 
 			}else if((dx>=x)&& checkBounds(x+1,y) && depth>0 && map[x+1][y].getT() == 0 &&t>0 && t<(map.length*map.length+1)){
 				peta.setEast(new Node(x+1, y, t+inc));
-				if(map[x+1][y].possible.contains(t+inc)){
+				/*if(map[x+1][y].possible.contains(t+inc)){
 					map[x+1][y].possible.add(t+inc);
 				}else if(map[x+1][y].possible.contains(t-inc)){
 					map[x+1][y].possible.add(t-inc);
-				}
+				}*/
 				//System.out.print("south2: ");
 				//if(first|| x+1!=source.getX() || y!=source.getY())
 					retval = this.echoTap(peta.getEast(), depth-1, inc, false, dest, peta, rep);
@@ -782,11 +790,11 @@ public class Map {
 				//south
 
 				peta.setSouth(new Node(x, y+1, t+inc));
-				if(map[x][y+1].possible.contains(t+inc)){
+				/*if(map[x][y+1].possible.contains(t+inc)){
 					map[x][y+1].possible.add(t+inc);
 				}else if(map[x][y+1].possible.contains(t-inc)){
 					map[x][y+1].possible.add(t-inc);
-				}
+				}*/
 				//System.out.print("east2: ");
 				//if(first|| x!=source.getX() || y+1!=source.getY())
 					retval = this.echoTap(peta.getSouth(), depth-1, inc, false, dest, peta, rep);
@@ -808,11 +816,11 @@ public class Map {
 			}else if((dx<=x) && checkBounds(x-1,y) && depth>0&& map[x-1][y].getT() == 0 &&t>0 && t<(map.length*map.length+1)){
 				//west
 				peta.setWest(new Node(x-1, y, t+inc));
-				if(map[x-1][y].possible.contains(t+inc)){
+				/*if(map[x-1][y].possible.contains(t+inc)){
 					map[x-1][y].possible.add(t+inc);
 				}else if(map[x-1][y].possible.contains(t-inc)){
 					map[x-1][y].possible.add(t-inc);
-				}
+				}*/
 				//System.out.print("north2: ");
 				//if(first|| x-1!=source.getX() || y!=source.getY())
 				retval = this.echoTap(peta.getWest(), depth-1, inc, false, dest, peta, rep);
