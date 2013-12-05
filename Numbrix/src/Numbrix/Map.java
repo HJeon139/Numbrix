@@ -340,7 +340,12 @@ public class Map {
 					
 			}
 			System.out.println("at["+rome.getY()+", "+rome.getX()+"]: possible="+map[rome.getX()][rome.getY()].possible);
-			
+			if(ka){
+				//System.out.println("Added "+rome.getT()+" successfully");
+				ArrayList<Integer> remus = new ArrayList<Integer>();
+				remus.add(rome.getT());
+				map[rome.getX()][rome.getY()].possible.clear();
+				//this.echoTap(rome.getT(), 1, 1, dval);
 				for(int i=0; i<map.length;i++){
 					for(int j=0; j<map.length;j++){
 						//map[i][j].possible.removeAll(remus);
@@ -348,6 +353,38 @@ public class Map {
 						map[i][j].possible.clear();
 					}
 				}
+			}/*else if(this.addForce(rome.getX(), rome.getY(), rome.getT(), false)){
+				//System.out.println("Added "+rome.getT()+" successfully");
+				ArrayList<Integer> remus = new ArrayList<Integer>();
+				remus.add(rome.getT());
+				map[rome.getX()][rome.getY()].possible.clear();
+				//this.echoTap(rome.getT(), 1, 1, dval);
+				for(int i=0; i<map.length;i++){
+					for(int j=0; j<map.length;j++){
+						map[i][j].possible.removeAll(remus);
+
+						//map[i][j].possible.clear();
+					}
+				}
+			}else {
+				//map[rome.getX()][rome.getY()].possible.clear();
+				rome = this.highestProb(0);
+				this.addForce(rome.getX(), rome.getY(), rome.getT(), false);
+				ArrayList<Integer> remus = new ArrayList<Integer>();
+				remus.add(rome.getT());
+				map[rome.getX()][rome.getY()].possible.clear();
+				//this.echoTap(rome.getT(), 1, 1, dval);
+				for(int i=0; i<map.length;i++){
+					for(int j=0; j<map.length;j++){
+						//map[i][j].possible.removeAll(remus);
+
+						map[i][j].possible.clear();
+					}
+				}
+			}*/
+			//ro--;
+			//}
+
 			//state = true;
 			top = null;
 			bottom = null;
@@ -601,20 +638,17 @@ public class Map {
 		int dif = codex.get(i).getDif(map.length*map.length);
 		/*if(dif>5)
 			dif=5;*/
-		if(top<=0 && bottom >0){
+		if(top==-1 && bottom >0){
 			//			if(dif>2)
 			//				retval = this.echoTap(bottom, (int)(Math.ceil((double)dif)/2.0), 1);
 			//			else
-			//retval = this.echoTap(bottom, (int)(Math.ceil((double)dif)/1.2), 1, -1, i);
-			
-			retval = this.shout(bottom, -1, (int)(Math.ceil((double)dif)/2.2), 1, codex.size()-i);
+			retval = this.echoTap(bottom, (int)(Math.ceil((double)dif)/1.2), 1, -1, i);
 		}
-		else if(top>0 && bottom <=0){
+		else if(top>0 && bottom ==-1){
 			//			if(dif>2)
 			//				retval = this.echoTap(top, (int)(Math.ceil((double)dif)/2.0), -1);
 			//			else
-			//retval = this.echoTap(top, (int)(Math.ceil((double)dif)/1.2), -1, -1, i);
-			retval = this.shout(top, -1, (int)(Math.ceil((double)dif)/2.2), -1, codex.size()-i);
+			retval = this.echoTap(top, (int)(Math.ceil((double)dif)/1.2), -1, -1, i);
 		}
 		else if(top>0 && bottom>0){
 			if(dif==2){
@@ -660,144 +694,7 @@ public class Map {
 		return ((x>=0)&&(x<map.length)&&(y>=0)&&(y<map.length));
 	}
 	
-	public boolean shout(int source, int dest, int depth, int inc, int i){
-		int x, y, dx, dy;
-		x=this.mapx[source-1];
-		y=this.mapy[source-1];
-		boolean a= false, b=false, c=false, d=false;
-
-		if(dest >0){
-			dx=this.mapx[dest-1];
-			dy = this.mapy[dest-1];
-			if(depth<0){
-				a= true;
-			}else{
-				if((Math.abs(dx-x)+Math.abs(dy-y))>=Math.abs(dest-source)){
-					//north [x-1]
-					if(x-1>=0 && x-1<map.length && dx<x)
-						a=echo(new Node(x, y, source), new Node(dx, dy, dest), new Node(x-1, y, source+inc), depth-1, inc, i+2); 
-					else
-						a=echo(new Node(x, y, source), new Node(dx, dy, dest), new Node(x-1, y, source+inc), depth-1, inc, i);
-					//east [y+1]
-					if(y+1>=0 && y+1<map.length && dy>y)
-						b=echo(new Node(x, y, source), new Node(dx, dy, dest), new Node(x, y+1, source+inc), depth-1, inc, i+2);
-					else
-						b=echo(new Node(x, y, source), new Node(dx, dy, dest), new Node(x, y+1, source+inc), depth-1, inc, i);
-					//south [x+1]
-					if(x+1>=0 && x+1<map.length && dx>x)
-						c=echo(new Node(x, y, source), new Node(dx, dy, dest), new Node(x+1, y, source+inc), depth-1, inc, i+2); 
-					else
-						c=echo(new Node(x, y, source), new Node(dx, dy, dest), new Node(x+1, y, source+inc), depth-1, inc, i);
-					//west [y-1]
-					if(y-1>=0 && y-1<map.length && dy<y)
-						d=echo(new Node(x, y, source), new Node(dx, dy, dest), new Node(x, y-1, source+inc), depth-1, inc, i+2);
-					else
-						d=echo(new Node(x, y, source), new Node(dx, dy, dest), new Node(x, y-1, source+inc), depth-1, inc, i);
-				}else{
-					//north [x-1]
-					if(x-1>=0 && x-1<map.length)
-						a=echo(new Node(x, y, source), new Node(dx, dy, dest), new Node(x-1, y, source+inc), depth-1, inc, i); 
-					//east [y+1]
-					if(y+1>=0 && y+1<map.length)
-						b=echo(new Node(x, y, source), new Node(dx, dy, dest), new Node(x, y+1, source+inc), depth-1, inc, i); 
-					//south [x+1]
-					if(x+1>=0 && x+1<map.length)
-						c=echo(new Node(x, y, source), new Node(dx, dy, dest), new Node(x+1, y, source+inc), depth-1, inc, i); 
-					//west [y-1]
-					if(y-1>=0 && y-1<map.length)
-						d=echo(new Node(x, y, source), new Node(dx, dy, dest), new Node(x, y-1, source+inc), depth-1, inc, i);
-					
-				}
-			}
-		}else{
-			
-			//north [x-1]
-			if(depth<0){
-				a= true;
-			}else{
-
-				if(x-1>=0 && x-1<map.length)
-					a=echou(x,y, new Node(x-1, y, source+inc), depth-1, inc, i); 
-				//east [y+1]
-				if(y+1>=0 && y+1<map.length)
-					b=echou(x,y, new Node(x, y+1, source+inc), depth-1, inc, i); 
-				//south [x+1]
-				if(x+1>=0 && x+1<map.length)
-					c=echou(x,y, new Node(x+1, y, source+inc), depth-1, inc, i); 
-				//west [y-1]
-				if(y-1>=0 && y-1<map.length)
-					d=echou(x,y, new Node(x, y-1, source+inc), depth-1, inc, i); 
-			}
-		}
-		return a||b||c||d;
-	}
-
-	public boolean echo(Node source, Node dest, Node current, int depth, int inc, int i){
-		
-		return false;
-	}
 	
-	public boolean echou(int dx, int dy, Node current, int depth, int inc, int i){
-		boolean a= false, b=false, c=false, d=false;
-		int x=current.getX();
-		int y=current.getY();
-		int t=current.getT();
-		
-		
-		//tap and stop case
-		if(depth <0 || t<=1 || t>=map.length*map.length){
-			
-				a=false;
-		}else if(t==1 || t==map.length*map.length){
-			a=true;
-		}else{
-			//current.setT(t+inc);
-			//t=t+inc;
-			//north [x-1]
-			if(x-1>=0 && x-1<map.length && dx != x-1){
-				//current.setX(x-1);
-				//current.setT(t+inc);
-				a=echou(x,y, new Node(x-1, y, t+inc), depth-1, inc, i-1); 
-			}
-			else{
-				a=false;}
-			//east [y+1]
-			if(y+1>=0 && y+1<map.length&& dy != y+1){
-				//current.setY(y+1);
-				b=echou(x,y, new Node(x, y+1, t+inc), depth-1, inc, i-1); 
-			}else{
-				b=false;}
-			//south [x+1]
-			if(x+1>=0 && x+1<map.length&& dx != x+1){
-				//current.setX(x+1);
-				c=echou(x,y, new Node(x+1, y, t+inc), depth-1, inc, i-1);
-			}else{
-				c=false;}
-			//west [y-1]
-			if(y-1>=0 && y-1<map.length&& dy != y-1){
-				//current.setY(y-1);
-				d=echou(x,y, new Node(x, y-1, t+inc), depth-1, inc, i-1); 
-			}else{
-				d=false;}
-			a= a||b||c||d;
-		}
-		if(a) System.out.println(current+" depth= "+depth);
-		//commit
-		a=a && map[x][y].getT()==0;
-		if(a){
-			if(i<0) i=0;
-			for(int k=0; k<=i; k++)
-				map[x][y].possible.add(t);
-		}
-
-		return a;
-	}
-	
-	
-	public boolean tap(Node current){
-		//commits node and returns true if possiblity at node is the same as current value
-		return false;
-	}
 	
 	public boolean echoTap(Node peta, int depth, int inc, boolean first, Node dest, Node source, int rep){
 		boolean retval = false/*, prune = true*/;
@@ -999,8 +896,7 @@ public class Map {
 				//System.out.println("value: "+value[i]);
 				double ants = 0.0;
 				if(value[i]!=null){
-					double percent = ((double)(count[i]*count[i]))/((double)pval.size());
-					//percent = percent*percent;
+					double percent = ((double)count[i])/((double)pval.size());
 					//percent = percent/spread(value[i]);
 					if(x+1<map.length&&x+1>=0){
 						if(map[x+1][y].getT()==value[i]+1 || map[x+1][y].getT()==value[i]-1){
